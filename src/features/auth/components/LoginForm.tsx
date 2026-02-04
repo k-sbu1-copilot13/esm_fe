@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Form, Input, Button, Card, Typography, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { login } from '../api/login';
-import { LoginRequest } from '../types';
+import type { LoginRequest } from '../types';
 
 const { Title, Text } = Typography;
 

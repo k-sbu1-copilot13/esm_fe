@@ -1,9 +1,9 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
-import AuthLayout from '../layouts/AuthLayout';
-import MainLayout from '../layouts/MainLayout';
-import LoginPage from '../pages/LoginPage';
+import AuthLayout from '../components/Layout/AuthLayout';
+import MainLayout from '../components/Layout/MainLayout';
+import { LoginPage } from '../features/auth';
 import { DashboardPage } from '../features/dashboard';
-import { useAuthStore } from '../stores/authStore';
+import { useAuthStore } from '../store/authStore';
 import React from 'react';
 
 // Component to protect routes

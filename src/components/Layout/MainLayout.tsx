@@ -11,7 +11,7 @@ import {
     SettingOutlined,
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { useAuthStore } from '../stores/authStore';
+import { useAuthStore } from '../../store/authStore';
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;

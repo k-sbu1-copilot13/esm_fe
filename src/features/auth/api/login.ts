@@ -1,5 +1,5 @@
 import axiosInstance from '../../../api/axiosInstance';
-import { LoginRequest, LoginResponse } from '../types';
+import type { LoginRequest, LoginResponse } from '../types';
 
 /**
  * Call the Login API endpoint.
