@@ -1,9 +1,12 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
-import AuthLayout from '../layouts/AuthLayout';
-import MainLayout from '../layouts/MainLayout';
-import LoginPage from '../pages/LoginPage';
+import AuthLayout from '../components/Layout/AuthLayout';
+import MainLayout from '../components/Layout/MainLayout';
+import { LoginPage } from '../features/auth';
 import { DashboardPage } from '../features/dashboard';
-import { useAuthStore } from '../stores/authStore';
+import CreateTemplatePage from '../features/templates/pages/CreateTemplatePage';
+import TemplateDetailPage from '../features/templates/pages/TemplateDetailPage';
+import FillFormPage from '../features/submissions/pages/FillFormPage';
+import { useAuthStore } from '../store/authStore';
 import React from 'react';
 
 // Component to protect routes
@@ -32,6 +35,18 @@ export const router = createBrowserRouter([
             {
                 path: 'profile',
                 element: <div style={{ padding: 24 }}><h2>Profile Page (Under Development)</h2></div>,
+            },
+            {
+                path: 'templates/create',
+                element: <CreateTemplatePage />,
+            },
+            {
+                path: 'templates/:id',
+                element: <TemplateDetailPage />,
+            },
+            {
+                path: 'submissions/use/:id',
+                element: <FillFormPage />,
             },
             {
                 path: 'settings',

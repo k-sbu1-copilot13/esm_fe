@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layout, Menu, Button, theme, Typography, Avatar, Dropdown, App } from 'antd';
+import { Layout, Menu, Button, theme, Typography, Avatar, Dropdown, message } from 'antd';
 import type { MenuProps } from 'antd';
 import {
     MenuFoldOutlined,
@@ -11,7 +11,7 @@ import {
     SettingOutlined,
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { useAuthStore } from '../stores/authStore';
+import { useAuthStore } from '../../store/authStore';
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -22,7 +22,6 @@ const MainLayout: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { logout, user } = useAuthStore();
-    const { message } = App.useApp();
 
     const handleLogout = () => {
         logout();

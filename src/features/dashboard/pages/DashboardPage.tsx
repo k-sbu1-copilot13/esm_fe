@@ -1,6 +1,6 @@
 import React from 'react';
 import { Typography, Empty } from 'antd';
-import { useAuthStore } from '../../../stores/authStore';
+import { useAuthStore } from '../../../store/authStore';
 import AdminDashboard from '../components/AdminDashboard';
 import ManagerDashboard from '../components/ManagerDashboard';
 import EmployeeDashboard from '../components/EmployeeDashboard';
