@@ -11,6 +11,16 @@ export interface LoginResponse {
 }
 
 export interface User {
+    id?: number;
     username: string;
+    fullName: string;
     role: string;
+}
+
+export interface Manager {
+    id: number;
+    username: string;
+    fullName: string;
+    role: string;
+    status: string;
 }

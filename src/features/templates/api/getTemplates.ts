@@ -43,3 +43,19 @@ export const getEmployeeTemplates = async (params?: {
     });
     return response.data;
 };
+
+/**
+ * Fetch a single form template by ID for admin.
+ * @param id The ID of the form template
+ * @returns Promise with form template details
+ */
+export const getTemplateById = async (id: number | string): Promise<FormTemplate> => {
+    const response = await axiosInstance.get<FormTemplate>(`/admin/form-templates/${id}`);
+    const data = response.data;
+    // Map workflow to workflowSteps if necessary for internal consistency
+    if (data.workflow && !data.workflowSteps) {
+        data.workflowSteps = data.workflow;
+    }
+    return data;
+};
+

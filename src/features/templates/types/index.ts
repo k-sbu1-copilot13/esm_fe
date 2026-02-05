@@ -1,26 +1,37 @@
+export const ComponentType = {
+    TEXT_SHORT: 'TEXT_SHORT',
+    TEXT_AREA: 'TEXT_AREA',
+    NUMBER: 'NUMBER',
+    DATE_PICKER: 'DATE_PICKER',
+    TIME_PICKER: 'TIME_PICKER',
+} as const;
+
+export type ComponentType = (typeof ComponentType)[keyof typeof ComponentType];
+
 export interface FormField {
-    id: number;
+    id?: number;
     label: string;
-    componentType: string;
+    componentType: ComponentType;
     required: boolean;
     displayOrder: number;
 }
 
 export interface WorkflowStep {
-    id: number;
+    id?: number;
     managerId: number;
-    managerName: string;
+    managerName?: string;
     stepOrder: number;
 }
 
 export interface FormTemplate {
-    id: number;
+    id?: number;
     title: string;
     description: string;
-    createdAt: string;
-    fields: FormField[];
-    workflow: WorkflowStep[];
     active: boolean;
+    createdAt?: string;
+    fields: FormField[];
+    workflowSteps: WorkflowStep[];
+    workflow?: WorkflowStep[]; // Alias for backend consistency
 }
 
 export interface PaginatedResponse<T> {

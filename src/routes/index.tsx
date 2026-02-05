@@ -3,6 +3,8 @@ import AuthLayout from '../components/Layout/AuthLayout';
 import MainLayout from '../components/Layout/MainLayout';
 import { LoginPage } from '../features/auth';
 import { DashboardPage } from '../features/dashboard';
+import CreateTemplatePage from '../features/templates/pages/CreateTemplatePage';
+import TemplateDetailPage from '../features/templates/pages/TemplateDetailPage';
 import { useAuthStore } from '../store/authStore';
 import React from 'react';
 
@@ -32,6 +34,14 @@ export const router = createBrowserRouter([
             {
                 path: 'profile',
                 element: <div style={{ padding: 24 }}><h2>Profile Page (Under Development)</h2></div>,
+            },
+            {
+                path: 'templates/create',
+                element: <CreateTemplatePage />,
+            },
+            {
+                path: 'templates/:id',
+                element: <TemplateDetailPage />,
             },
             {
                 path: 'settings',

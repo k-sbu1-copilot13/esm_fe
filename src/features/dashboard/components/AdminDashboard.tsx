@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Button, Space, Typography, Card, Tag, message, Input } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
+import { Table, Button, Space, Typography, Card, Tag, message, Input, Modal } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import type { ColumnsType } from 'antd/es/table';
-import { getAdminTemplates } from '../../templates';
+import { getAdminTemplates, deleteTemplate } from '../../templates';
 import type { FormTemplate } from '../../templates';
 import dayjs from 'dayjs';
 
 const { Title } = Typography;
 
 const AdminDashboard: React.FC = () => {
+    const navigate = useNavigate();
     const [templates, setTemplates] = useState<FormTemplate[]>([]);
     const [loading, setLoading] = useState(false);
     const [searchText, setSearchText] = useState('');
@@ -53,6 +55,31 @@ const AdminDashboard: React.FC = () => {
         fetchTemplates(newPagination.current, newPagination.pageSize, searchText);
     };
 
+    const handleDelete = (record: FormTemplate) => {
+        Modal.confirm({
+            title: 'Are you sure you want to delete this template?',
+            icon: <ExclamationCircleOutlined />,
+            content: `Template: ${record.title}`,
+            okText: 'Yes',
+            okType: 'danger',
+            cancelText: 'No',
+            onOk: async () => {
+                if (!record.id) {
+                    message.error('Template ID is missing');
+                    return;
+                }
+                try {
+                    await deleteTemplate(record.id);
+                    message.success('Template deleted successfully');
+                    fetchTemplates(pagination.current, pagination.pageSize, searchText);
+                } catch (error) {
+                    console.error('Failed to delete template:', error);
+                    message.error('Failed to delete template');
+                }
+            },
+        });
+    };
+
     const columns: ColumnsType<FormTemplate> = [
         {
             title: 'No',
@@ -90,8 +117,8 @@ const AdminDashboard: React.FC = () => {
             width: 150,
             render: (_, record) => (
                 <Space size="middle">
-                    <Button type="text" icon={<EditOutlined />} onClick={() => console.log('Edit', record.id)} />
-                    <Button type="text" danger icon={<DeleteOutlined />} onClick={() => console.log('Delete', record.id)} />
+                    <Button type="text" icon={<EditOutlined />} onClick={() => navigate(`/templates/${record.id}`)} />
+                    <Button type="text" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record)} />
                 </Space>
             ),
         },
@@ -114,6 +141,7 @@ const AdminDashboard: React.FC = () => {
                         icon={<PlusOutlined />}
                         size="large"
                         style={{ borderRadius: 8 }}
+                        onClick={() => navigate('/templates/create')}
                     >
                         Create a new application form
                     </Button>
