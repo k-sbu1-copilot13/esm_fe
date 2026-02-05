@@ -5,6 +5,7 @@ import { LoginPage } from '../features/auth';
 import { DashboardPage } from '../features/dashboard';
 import CreateTemplatePage from '../features/templates/pages/CreateTemplatePage';
 import TemplateDetailPage from '../features/templates/pages/TemplateDetailPage';
+import FillFormPage from '../features/submissions/pages/FillFormPage';
 import { useAuthStore } from '../store/authStore';
 import React from 'react';
 
@@ -42,6 +43,10 @@ export const router = createBrowserRouter([
             {
                 path: 'templates/:id',
                 element: <TemplateDetailPage />,
+            },
+            {
+                path: 'submissions/use/:id',
+                element: <FillFormPage />,
             },
             {
                 path: 'settings',

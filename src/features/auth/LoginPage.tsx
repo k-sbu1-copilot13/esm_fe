@@ -7,8 +7,8 @@ const LoginPage: React.FC = () => {
     const navigate = useNavigate();
     const setAuth = useAuthStore((state) => state.setAuth);
 
-    const handleLoginSuccess = (token: string, username: string, role: string) => {
-        setAuth(token, { username, fullName: username, role });
+    const handleLoginSuccess = (token: string, username: string, role: string, id: number) => {
+        setAuth(token, { id, username, fullName: username, role });
         navigate('/'); // Redirect to dashboard/home after login
     };
 

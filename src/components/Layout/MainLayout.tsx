@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layout, Menu, Button, theme, Typography, Avatar, Dropdown, App } from 'antd';
+import { Layout, Menu, Button, theme, Typography, Avatar, Dropdown, message } from 'antd';
 import type { MenuProps } from 'antd';
 import {
     MenuFoldOutlined,
@@ -22,7 +22,6 @@ const MainLayout: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { logout, user } = useAuthStore();
-    const { message } = App.useApp();
 
     const handleLogout = () => {
         logout();

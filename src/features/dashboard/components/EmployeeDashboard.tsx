@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Table, Typography, Card, Tag, Space, Button, List, message, Skeleton, Input } from 'antd';
 import { EditOutlined, DeleteOutlined, FileAddOutlined, SearchOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { getEmployeeTemplates } from '../../templates';
 import type { FormTemplate } from '../../templates';
 
-const { Title } = Typography;
+const { Title, Paragraph } = Typography;
 
 interface DraftData {
     key: string;
@@ -23,6 +24,7 @@ interface SubmittedData {
 }
 
 const EmployeeDashboard: React.FC = () => {
+    const navigate = useNavigate();
     const [templates, setTemplates] = useState<FormTemplate[]>([]);
     const [loadingTemplates, setLoadingTemplates] = useState(false);
     const [searchText, setSearchText] = useState('');
@@ -160,7 +162,7 @@ const EmployeeDashboard: React.FC = () => {
                                         <Button
                                             type="link"
                                             icon={<FileAddOutlined />}
-                                            onClick={() => console.log('Use Form', item.id)}
+                                            onClick={() => navigate(`/submissions/use/${item.id}`)}
                                         >
                                             Use Form
                                         </Button>
@@ -169,11 +171,12 @@ const EmployeeDashboard: React.FC = () => {
                                     <Card.Meta
                                         title={item.title}
                                         description={
-                                            <div style={{ minHeight: 44 }}>
-                                                <div style={{ fontSize: 13, color: '#8c8c8c', lineHeight: '22px' }}>
-                                                    {item.description}
-                                                </div>
-                                            </div>
+                                            <Paragraph
+                                                ellipsis={{ rows: 2, tooltip: item.description }}
+                                                style={{ fontSize: 13, color: '#8c8c8c', marginBottom: 0, minHeight: 44 }}
+                                            >
+                                                {item.description}
+                                            </Paragraph>
                                         }
                                     />
                                 </Card>

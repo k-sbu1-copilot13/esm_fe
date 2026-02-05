@@ -4,6 +4,7 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
+    id: number;
     token: string;
     username: string;
     role: string;
@@ -11,7 +12,7 @@ export interface LoginResponse {
 }
 
 export interface User {
-    id?: number;
+    id: number;
     username: string;
     fullName: string;
     role: string;
