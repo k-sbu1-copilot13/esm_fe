@@ -1,85 +1,215 @@
-import React from 'react';
-import { Table, Typography, Card, Tag, Space } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Table, Typography, Card, Tag, Space, message, Input } from 'antd';
+import { SearchOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
+import { useAuthStore } from '../../../store/authStore';
+import { getPendingApprovals, getApprovalHistory } from '../../approvals';
+import type { PendingApproval, ApprovalHistory } from '../../approvals';
 
 const { Title } = Typography;
 
-interface AwaitingData {
-    key: string;
-    no: number;
-    title: string;
-    employeeName: string;
-    submitAt: string;
-}
-
-interface ProcessedData extends AwaitingData {
-    status: string;
-}
-
 const ManagerDashboard: React.FC = () => {
-    const awaitingColumns: ColumnsType<AwaitingData> = [
-        { title: 'No', dataIndex: 'no', key: 'no', width: 80 },
-        { title: 'Title', dataIndex: 'title', key: 'title' },
+    const { user } = useAuthStore();
+    const navigate = useNavigate();
+
+    // Awaiting state
+    const [awaitingData, setAwaitingData] = useState<PendingApproval[]>([]);
+    const [loadingAwaiting, setLoadingAwaiting] = useState(false);
+    const [awaitingPage, setAwaitingPage] = useState(1);
+    const [awaitingTotal, setAwaitingTotal] = useState(0);
+    const [awaitingSearch, setAwaitingSearch] = useState('');
+    const pageSize = 5;
+
+    // Processed state
+    const [processedData, setProcessedData] = useState<ApprovalHistory[]>([]);
+    const [loadingProcessed, setLoadingProcessed] = useState(false);
+    const [processedPage, setProcessedPage] = useState(1);
+    const [processedTotal, setProcessedTotal] = useState(0);
+    const [processedSearch, setProcessedSearch] = useState('');
+
+    const fetchPendingApprovals = async () => {
+        if (!user?.id) return;
+        setLoadingAwaiting(true);
+        try {
+            const data = await getPendingApprovals(user.id, {
+                page: awaitingPage - 1,
+                size: pageSize,
+                search: awaitingSearch || undefined
+            });
+            setAwaitingData(data.content);
+            setAwaitingTotal(data.totalElements);
+        } catch (error) {
+            console.error('Failed to fetch pending approvals:', error);
+            message.error('Failed to load pending applications');
+        } finally {
+            setLoadingAwaiting(false);
+        }
+    };
+
+    const fetchApprovalHistory = async () => {
+        if (!user?.id) return;
+        setLoadingProcessed(true);
+        try {
+            const data = await getApprovalHistory(user.id, {
+                page: processedPage - 1,
+                size: pageSize,
+                search: processedSearch || undefined
+            });
+            setProcessedData(data.content);
+            setProcessedTotal(data.totalElements);
+        } catch (error) {
+            console.error('Failed to fetch approval history:', error);
+            message.error('Failed to load processed applications');
+        } finally {
+            setLoadingProcessed(false);
+        }
+    };
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            fetchPendingApprovals();
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [user?.id, awaitingPage, awaitingSearch]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            fetchApprovalHistory();
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [user?.id, processedPage, processedSearch]);
+
+    const awaitingColumns: ColumnsType<PendingApproval> = [
+        {
+            title: 'No',
+            dataIndex: 'no',
+            key: 'no',
+            width: 80,
+            render: (_text, _record, index) => (awaitingPage - 1) * pageSize + index + 1
+        },
+        { title: 'Title', dataIndex: 'templateTitle', key: 'templateTitle', render: (text) => text || 'Untitled' },
         { title: 'Employee name', dataIndex: 'employeeName', key: 'employeeName' },
-        { title: 'Submit at', dataIndex: 'submitAt', key: 'submitAt' },
+        {
+            title: 'Submit at',
+            dataIndex: 'createdAt',
+            key: 'createdAt',
+            render: (date: string) => date ? new Date(date).toLocaleString('vi-VN') : 'N/A'
+        },
     ];
 
-    const processedColumns: ColumnsType<ProcessedData> = [
-        { title: 'No', dataIndex: 'no', key: 'no', width: 80 },
-        { title: 'Title', dataIndex: 'title', key: 'title' },
+    const processedColumns: ColumnsType<ApprovalHistory> = [
+        {
+            title: 'No',
+            dataIndex: 'no',
+            key: 'no',
+            width: 80,
+            render: (_text, _record, index) => (processedPage - 1) * pageSize + index + 1
+        },
+        { title: 'Title', dataIndex: 'templateTitle', key: 'templateTitle', render: (text) => text || 'Untitled' },
         { title: 'Employee name', dataIndex: 'employeeName', key: 'employeeName' },
-        { title: 'Submit at', dataIndex: 'submitAt', key: 'submitAt' },
         {
-            title: 'Status',
-            dataIndex: 'status',
-            key: 'status',
-            render: (status: string) => (
-                <Tag color={status === 'Approved' ? 'green' : 'red'}>
-                    {status.toUpperCase()}
-                </Tag>
-            )
-        },
-    ];
-
-    const awaitingData: AwaitingData[] = [
-        {
-            key: '1',
-            no: 1,
-            title: 'Annual Leave - Nguyen Van A',
-            employeeName: 'Nguyen Van A',
-            submitAt: '2026-02-04 09:00',
-        },
-    ];
-
-    const processedData: ProcessedData[] = [
-        {
-            key: '1',
-            no: 1,
-            title: 'Overtime Claim - Tran Thi B',
-            employeeName: 'Tran Thi B',
-            submitAt: '2026-02-03 15:30',
-            status: 'Approved',
+            title: 'Processed at',
+            dataIndex: 'actedAt',
+            key: 'actedAt',
+            render: (date: string) => date ? new Date(date).toLocaleString('vi-VN') : 'N/A'
         },
         {
-            key: '2',
-            no: 2,
-            title: 'Business Trip - Le Van C',
-            employeeName: 'Le Van C',
-            submitAt: '2026-02-02 10:15',
-            status: 'Rejected',
+            title: 'Action',
+            dataIndex: 'action',
+            key: 'action',
+            render: (action: string) => {
+                let color = 'default';
+                if (action === 'APPROVE' || action === 'APPROVED') color = 'green';
+                if (action === 'REJECT' || action === 'REJECTED') color = 'red';
+                return (
+                    <Tag color={color}>
+                        {(action || '').toUpperCase()}
+                    </Tag>
+                );
+            }
         },
     ];
 
     return (
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
             <Card bordered={false} className="glass-morphism" style={{ borderRadius: 16 }}>
-                <Title level={4} style={{ marginBottom: 20 }}>Application awaiting approval</Title>
-                <Table columns={awaitingColumns} dataSource={awaitingData} pagination={false} size="middle" />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                    <Title level={4} style={{ margin: 0 }}>Application awaiting approval</Title>
+                    <Input
+                        placeholder="Search application awaiting approval..."
+                        prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+                        onChange={(e) => {
+                            setAwaitingSearch(e.target.value);
+                            setAwaitingPage(1);
+                        }}
+                        style={{ width: 350, borderRadius: 8 }}
+                        allowClear
+                    />
+                </div>
+                <Table
+                    columns={awaitingColumns}
+                    dataSource={awaitingData}
+                    rowKey="id"
+                    loading={loadingAwaiting}
+                    onRow={(record) => ({
+                        onClick: () => {
+                            const subId = record.submissionId || record.id;
+                            const empId = record.employeeId;
+                            console.log('Navigating to submission detail:', { subId, empId, Record: record });
+                            navigate(`/submissions/approve/${subId}?employeeId=${empId}`);
+                        },
+                        style: { cursor: 'pointer' }
+                    })}
+                    pagination={{
+                        current: awaitingPage,
+                        pageSize: pageSize,
+                        total: awaitingTotal,
+                        onChange: (page) => setAwaitingPage(page),
+                        hideOnSinglePage: true,
+                        size: 'small'
+                    }}
+                    size="middle"
+                />
             </Card>
 
             <Card bordered={false} className="glass-morphism" style={{ borderRadius: 16 }}>
-                <Title level={4} style={{ marginBottom: 20 }}>List of processed applications</Title>
-                <Table columns={processedColumns} dataSource={processedData} pagination={{ pageSize: 5 }} size="middle" />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                    <Title level={4} style={{ margin: 0 }}>List of processed applications</Title>
+                    <Input
+                        placeholder="Search processed applications..."
+                        prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+                        onChange={(e) => {
+                            setProcessedSearch(e.target.value);
+                            setProcessedPage(1);
+                        }}
+                        style={{ width: 350, borderRadius: 8 }}
+                        allowClear
+                    />
+                </div>
+                <Table
+                    columns={processedColumns}
+                    dataSource={processedData}
+                    rowKey="id"
+                    loading={loadingProcessed}
+                    onRow={(record) => ({
+                        onClick: () => {
+                            const subId = record.submissionId;
+                            console.log('Navigating to processed submission detail:', { subId, Record: record });
+                            navigate(`/submissions/approve/${subId}?isViewOnly=true`);
+                        },
+                        style: { cursor: 'pointer' }
+                    })}
+                    pagination={{
+                        current: processedPage,
+                        pageSize: pageSize,
+                        total: processedTotal,
+                        onChange: (page) => setProcessedPage(page),
+                        hideOnSinglePage: true,
+                        size: 'small'
+                    }}
+                    size="middle"
+                />
             </Card>
         </Space>
     );

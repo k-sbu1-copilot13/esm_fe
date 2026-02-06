@@ -46,4 +46,20 @@ export interface SubmitResponse {
     message?: string;
 }
 
+export interface PaginatedResponse<T> {
+    content: T[];
+    totalElements: number;
+    totalPages: number;
+    size: number;
+    number: number;
+    first: boolean;
+    last: boolean;
+    empty: boolean;
+    pageable: {
+        pageNumber: number;
+        pageSize: number;
+    };
+}
+
 export type { FormTemplate };
+
