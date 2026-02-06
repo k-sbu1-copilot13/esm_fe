@@ -7,6 +7,7 @@ import CreateTemplatePage from '../features/templates/pages/CreateTemplatePage';
 import TemplateDetailPage from '../features/templates/pages/TemplateDetailPage';
 import FillFormPage from '../features/submissions/pages/FillFormPage';
 import EditSubmissionPage from '../features/submissions/pages/EditSubmissionPage';
+import SubmissionDetailPage from '../features/approvals/pages/SubmissionDetailPage';
 import { useAuthStore } from '../store/authStore';
 import React from 'react';
 
@@ -52,6 +53,10 @@ export const router = createBrowserRouter([
             {
                 path: 'submissions/edit/:id',
                 element: <EditSubmissionPage />,
+            },
+            {
+                path: 'submissions/approve/:id',
+                element: <SubmissionDetailPage />,
             },
             {
                 path: 'settings',
