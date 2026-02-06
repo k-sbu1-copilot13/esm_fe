@@ -23,14 +23,14 @@ import {
     SolutionOutlined,
     UserOutlined
 } from '@ant-design/icons';
-import { getTemplateById, saveDraft, submitForm } from '../api/submissions';
+import { getTemplateById, getSubmissionById, saveDraft, submitForm } from '../api/submissions';
 import type { FormTemplate } from '../types';
 import { ComponentType } from '../../templates';
 import { useAuthStore } from '../../../store/authStore';
 
 const { Title, Paragraph } = Typography;
 
-const FillFormPage: React.FC = () => {
+const EditSubmissionPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [form] = Form.useForm();
@@ -41,21 +41,33 @@ const FillFormPage: React.FC = () => {
     const user = useAuthStore((state) => state.user);
 
     useEffect(() => {
-        const fetchTemplate = async () => {
-            if (!id) return;
+        const fetchData = async () => {
+            if (!id || !user?.id) return;
             setLoading(true);
             try {
-                const data = await getTemplateById(id);
-                setTemplate(data);
+                // Fetch submission data
+                const submissionData = await getSubmissionById(id, user.id);
+
+                // Fetch template data
+                const templateData = await getTemplateById(submissionData.templateId);
+                setTemplate(templateData);
+
+                // Transform submissionValues to form values
+                const initialValues: Record<string, any> = {};
+                submissionData.submissionValues.forEach((sv) => {
+                    initialValues[sv.fieldId] = sv.value;
+                });
+
+                form.setFieldsValue(initialValues);
             } catch (error) {
-                console.error('Failed to fetch template:', error);
-                message.error('Failed to load form template.');
+                console.error('Failed to fetch data:', error);
+                message.error('Failed to load application data.');
             } finally {
                 setLoading(false);
             }
         };
-        fetchTemplate();
-    }, [id]);
+        fetchData();
+    }, [id, user?.id, form]);
 
     const renderField = (field: any) => {
         const commonProps = {
@@ -80,7 +92,7 @@ const FillFormPage: React.FC = () => {
     };
 
     const handleSave = async () => {
-        if (!template || !user?.id) {
+        if (!template || !user?.id || !id) {
             message.error('Missing required information to save draft.');
             return;
         }
@@ -88,9 +100,10 @@ const FillFormPage: React.FC = () => {
         setSaving(true);
         try {
             const values = form.getFieldsValue();
-            console.log('🚀 Sending Draft:', { templateId: template.id, values });
+            console.log('Saving Draft:', { id, templateId: template.id, values });
 
             const draftData = {
+                id: Number(id),
                 templateId: Number(template.id),
                 values
             };
@@ -108,17 +121,18 @@ const FillFormPage: React.FC = () => {
     };
 
     const handleSubmit = async () => {
-        if (!template || !user?.id) {
+        if (!template || !user?.id || !id) {
             message.error('Missing required information to submit form.');
             return;
         }
 
         try {
             const values = await form.validateFields();
-            console.log('📤 Submitting Form:', { templateId: template.id, values });
+            console.log('Submitting Form:', { id, templateId: template.id, values });
 
             setSubmitting(true);
             const submissionData = {
+                id: Number(id),
                 templateId: Number(template.id),
                 values
             };
@@ -128,7 +142,7 @@ const FillFormPage: React.FC = () => {
             navigate('/');
         } catch (error: any) {
             if (error.errorFields) return;
-            console.error('❌ Submission failed:', error);
+            console.error('Submission failed:', error);
             const errorMsg = error.response?.data?.message || error.message || 'Failed to submit form.';
             message.error(`Submission failed: ${errorMsg}`);
         } finally {
@@ -139,7 +153,7 @@ const FillFormPage: React.FC = () => {
     if (loading) {
         return (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-                <Spin size="large" tip="Loading form template..." />
+                <Spin size="large" tip="Loading application data..." />
             </div>
         );
     }
@@ -258,4 +272,4 @@ const FillFormPage: React.FC = () => {
     );
 };
 
-export default FillFormPage;
+export default EditSubmissionPage;
