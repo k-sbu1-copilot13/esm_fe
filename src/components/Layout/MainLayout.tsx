@@ -7,8 +7,6 @@ import {
     DashboardOutlined,
     UserOutlined,
     LogoutOutlined,
-    FileTextOutlined,
-    SettingOutlined,
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
@@ -35,20 +33,17 @@ const MainLayout: React.FC = () => {
             icon: <DashboardOutlined />,
             label: 'Dashboard',
         },
-        {
-            key: '/submissions',
-            icon: <FileTextOutlined />,
-            label: 'My Submissions',
-        },
+        ...(user?.role === 'ADMIN' ? [
+            {
+                key: '/users',
+                icon: <UserOutlined />,
+                label: 'User management',
+            }
+        ] : []),
         {
             key: '/profile',
             icon: <UserOutlined />,
             label: 'Profile',
-        },
-        {
-            key: '/settings',
-            icon: <SettingOutlined />,
-            label: 'Settings',
         },
     ];
 
@@ -56,8 +51,9 @@ const MainLayout: React.FC = () => {
         items: [
             {
                 key: 'profile',
-                label: 'Hồ sơ',
+                label: 'Profile',
                 icon: <UserOutlined />,
+                onClick: () => navigate('/profile'),
             },
             {
                 type: 'divider',

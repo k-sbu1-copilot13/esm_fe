@@ -7,7 +7,7 @@ import type { FormTemplate } from '../../templates/types';
  * This is a proxy to the template API but kept here for submission feature context.
  */
 export const getTemplateById = async (id: number | string): Promise<FormTemplate> => {
-    const response = await axiosInstance.get<FormTemplate>(`/admin/form-templates/${id}`);
+    const response = await axiosInstance.get<FormTemplate>(`/form-templates/${id}`);
     const data = response.data;
     if (data.workflow && !data.workflowSteps) {
         data.workflowSteps = data.workflow;

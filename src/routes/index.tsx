@@ -9,6 +9,7 @@ import FillFormPage from '../features/submissions/pages/FillFormPage';
 import EditSubmissionPage from '../features/submissions/pages/EditSubmissionPage';
 import SubmissionDetailPage from '../features/approvals/pages/SubmissionDetailPage';
 import EmployeeSubmissionDetailPage from '../features/submissions/pages/EmployeeSubmissionDetailPage';
+import { ProfilePage } from '../features/profile';
 import { useAuthStore } from '../store/authStore';
 import React from 'react';
 
@@ -37,7 +38,7 @@ export const router = createBrowserRouter([
             },
             {
                 path: 'profile',
-                element: <div style={{ padding: 24 }}><h2>Profile Page (Under Development)</h2></div>,
+                element: <ProfilePage />,
             },
             {
                 path: 'templates/create',
