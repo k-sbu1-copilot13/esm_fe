@@ -10,6 +10,7 @@ import EditSubmissionPage from '../features/submissions/pages/EditSubmissionPage
 import SubmissionDetailPage from '../features/approvals/pages/SubmissionDetailPage';
 import EmployeeSubmissionDetailPage from '../features/submissions/pages/EmployeeSubmissionDetailPage';
 import { ProfilePage } from '../features/profile';
+import { UserManagementPage, UserDetailPage } from '../features/users';
 import { useAuthStore } from '../store/authStore';
 import React from 'react';
 
@@ -39,6 +40,14 @@ export const router = createBrowserRouter([
             {
                 path: 'profile',
                 element: <ProfilePage />,
+            },
+            {
+                path: 'users',
+                element: <UserManagementPage />,
+            },
+            {
+                path: 'users/:id',
+                element: <UserDetailPage />,
             },
             {
                 path: 'templates/create',
