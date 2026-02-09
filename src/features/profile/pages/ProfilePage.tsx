@@ -46,10 +46,11 @@ const ProfilePage: React.FC = () => {
 
     const getStatusTag = (status: string) => {
         const isActive = status?.toUpperCase() === 'ACTIVE' || status?.toUpperCase() === 'ENABLED';
+        const isLocked = status?.toUpperCase() === 'LOCKED';
         return (
             <Tag
-                // icon={isActive ? <CheckCircleOutlined /> : <StopOutlined />}
-                color={isActive ? 'green' : 'red'}
+                icon={isActive ? <CheckCircleOutlined /> : isLocked ? <StopOutlined /> : undefined}
+                color={isActive ? 'green' : isLocked ? 'red' : 'default'}
                 style={{ borderRadius: 12, padding: '0 12px' }}
             >
                 {status?.toUpperCase() || 'UNKNOWN'}
