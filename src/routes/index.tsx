@@ -8,6 +8,7 @@ import TemplateDetailPage from '../features/templates/pages/TemplateDetailPage';
 import FillFormPage from '../features/submissions/pages/FillFormPage';
 import EditSubmissionPage from '../features/submissions/pages/EditSubmissionPage';
 import SubmissionDetailPage from '../features/approvals/pages/SubmissionDetailPage';
+import EmployeeSubmissionDetailPage from '../features/submissions/pages/EmployeeSubmissionDetailPage';
 import { useAuthStore } from '../store/authStore';
 import React from 'react';
 
@@ -57,6 +58,10 @@ export const router = createBrowserRouter([
             {
                 path: 'submissions/approve/:id',
                 element: <SubmissionDetailPage />,
+            },
+            {
+                path: 'submissions/detail/:id',
+                element: <EmployeeSubmissionDetailPage />,
             },
             {
                 path: 'settings',

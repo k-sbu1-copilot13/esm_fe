@@ -370,6 +370,10 @@ const EmployeeDashboard: React.FC = () => {
                         locale={{
                             emptyText: 'No submitted applications'
                         }}
+                        onRow={(record) => ({
+                            onClick: () => navigate(`/submissions/detail/${record.id}`),
+                            style: { cursor: 'pointer' }
+                        })}
                     />
                 )}
             </Card>
