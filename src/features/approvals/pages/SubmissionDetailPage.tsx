@@ -3,9 +3,6 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
     Form,
     Input,
-    InputNumber,
-    DatePicker,
-    TimePicker,
     Button,
     Card,
     Typography,
@@ -28,7 +25,7 @@ import {
 import dayjs from 'dayjs';
 import { getSubmissionById } from '../../submissions/api/submissions';
 import { useAuthStore } from '../../../store/authStore';
-import { ComponentType } from '../../templates';
+import { ComponentType, DynamicField, FIELD_LIMITS } from '../../templates';
 import { Steps } from 'antd';
 import { processApproval, getApprovalDetail } from '../api/approvals';
 
@@ -95,28 +92,7 @@ const SubmissionDetailPage: React.FC = () => {
         }
     }, [id, user?.id, form, isViewOnly, employeeId]);
 
-    const renderField = (field: any) => {
-        const commonProps = {
-            style: { width: '100%', borderRadius: 8 },
-            readOnly: true,
-            disabled: true // Keep it disabled as it's a detail view for manager
-        };
 
-        switch (field.componentType) {
-            case ComponentType.TEXT_SHORT:
-                return <Input {...commonProps} />;
-            case ComponentType.TEXT_AREA:
-                return <Input.TextArea {...commonProps} autoSize={{ minRows: 3, maxRows: 6 }} />;
-            case ComponentType.NUMBER:
-                return <InputNumber {...commonProps} />;
-            case ComponentType.DATE_PICKER:
-                return <DatePicker {...commonProps} />;
-            case ComponentType.TIME_PICKER:
-                return <TimePicker {...commonProps} />;
-            default:
-                return <Input {...commonProps} />;
-        }
-    };
 
     const handleSaveAction = async () => {
         if (!user?.id || !id) return;
@@ -235,7 +211,12 @@ const SubmissionDetailPage: React.FC = () => {
                                 getValueProps: (value: any) => ({ value: value ? dayjs(value, 'HH:mm:ss') : undefined }),
                             } : {})}
                         >
-                            {renderField(field)}
+                            <DynamicField
+                                componentType={field.componentType}
+                                label={field.label}
+                                readOnly
+                                disabled
+                            />
                         </Form.Item>
                     ))}
                 </Form>
@@ -287,6 +268,8 @@ const SubmissionDetailPage: React.FC = () => {
                                         placeholder={getFieldValue('action') === 'REJECT' ? "Please provide a reason for rejection (required)..." : "Please provide a reason for your decision (optional)..."}
                                         autoSize={{ minRows: 4, maxRows: 8 }}
                                         style={{ borderRadius: 10 }}
+                                        maxLength={FIELD_LIMITS.REASON}
+                                        showCount
                                     />
                                 </Form.Item>
                             )}

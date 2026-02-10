@@ -3,10 +3,6 @@ import dayjs from 'dayjs';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     Form,
-    Input,
-    InputNumber,
-    DatePicker,
-    TimePicker,
     Button,
     Card,
     Typography,
@@ -25,7 +21,7 @@ import {
 } from '@ant-design/icons';
 import { getTemplateById, getSubmissionById, saveDraft, submitForm } from '../api/submissions';
 import type { FormTemplate } from '../types';
-import { ComponentType } from '../../templates';
+import { ComponentType, DynamicField } from '../../templates';
 import { useAuthStore } from '../../../store/authStore';
 
 const { Title, Paragraph } = Typography;
@@ -70,25 +66,12 @@ const EditSubmissionPage: React.FC = () => {
     }, [id, user?.id, form]);
 
     const renderField = (field: any) => {
-        const commonProps = {
-            placeholder: `Enter ${field.label.toLowerCase()}...`,
-            style: { width: '100%', borderRadius: 8 }
-        };
-
-        switch (field.componentType) {
-            case ComponentType.TEXT_SHORT:
-                return <Input {...commonProps} />;
-            case ComponentType.TEXT_AREA:
-                return <Input.TextArea {...commonProps} autoSize={{ minRows: 3, maxRows: 6 }} />;
-            case ComponentType.NUMBER:
-                return <InputNumber {...commonProps} />;
-            case ComponentType.DATE_PICKER:
-                return <DatePicker {...commonProps} />;
-            case ComponentType.TIME_PICKER:
-                return <TimePicker {...commonProps} />;
-            default:
-                return <Input {...commonProps} />;
-        }
+        return (
+            <DynamicField
+                componentType={field.componentType}
+                label={field.label}
+            />
+        );
     };
 
     const handleSave = async () => {
