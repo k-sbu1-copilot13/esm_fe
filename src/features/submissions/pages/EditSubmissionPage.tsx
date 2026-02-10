@@ -38,11 +38,11 @@ const EditSubmissionPage: React.FC = () => {
 
     useEffect(() => {
         const fetchData = async () => {
-            if (!id || !user?.id) return;
+            if (!id) return;
             setLoading(true);
             try {
                 // Fetch submission data
-                const submissionData = await getSubmissionById(id, user.id);
+                const submissionData = await getSubmissionById(id);
 
                 // Fetch template data
                 const templateData = await getTemplateById(submissionData.templateId);
@@ -63,7 +63,7 @@ const EditSubmissionPage: React.FC = () => {
             }
         };
         fetchData();
-    }, [id, user?.id, form]);
+    }, [id, form]);
 
     const renderField = (field: any) => {
         return (
@@ -75,7 +75,7 @@ const EditSubmissionPage: React.FC = () => {
     };
 
     const handleSave = async () => {
-        if (!template || !user?.id || !id) {
+        if (!template || !id) {
             message.error('Missing required information to save draft.');
             return;
         }
@@ -91,7 +91,7 @@ const EditSubmissionPage: React.FC = () => {
                 values
             };
 
-            await saveDraft(draftData, user.id);
+            await saveDraft(draftData);
             message.success('Draft saved successfully!');
             navigate('/');
         } catch (error: any) {
@@ -104,7 +104,7 @@ const EditSubmissionPage: React.FC = () => {
     };
 
     const handleSubmit = async () => {
-        if (!template || !user?.id || !id) {
+        if (!template || !id) {
             message.error('Missing required information to submit form.');
             return;
         }
@@ -120,7 +120,7 @@ const EditSubmissionPage: React.FC = () => {
                 values
             };
 
-            await submitForm(submissionData, user.id);
+            await submitForm(submissionData);
             message.success('Form submitted successfully!');
             navigate('/');
         } catch (error: any) {

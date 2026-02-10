@@ -63,7 +63,7 @@ const FillFormPage: React.FC = () => {
     };
 
     const handleSave = async () => {
-        if (!template || !user?.id) {
+        if (!template) {
             message.error('Missing required information to save draft.');
             return;
         }
@@ -78,7 +78,7 @@ const FillFormPage: React.FC = () => {
                 values
             };
 
-            await saveDraft(draftData, user.id);
+            await saveDraft(draftData);
             message.success('Draft saved successfully!');
             navigate('/');
         } catch (error: any) {
@@ -91,7 +91,7 @@ const FillFormPage: React.FC = () => {
     };
 
     const handleSubmit = async () => {
-        if (!template || !user?.id) {
+        if (!template) {
             message.error('Missing required information to submit form.');
             return;
         }
@@ -106,7 +106,7 @@ const FillFormPage: React.FC = () => {
                 values
             };
 
-            await submitForm(submissionData, user.id);
+            await submitForm(submissionData);
             message.success('Form submitted successfully!');
             navigate('/');
         } catch (error: any) {

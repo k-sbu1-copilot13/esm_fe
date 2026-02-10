@@ -55,20 +55,15 @@ const SubmissionDetailPage: React.FC = () => {
                 return;
             }
 
-            if (!isViewOnly && !employeeId) {
-                console.warn('Missing Employee ID from URL for approval mode:', { id, employeeId });
-                return;
-            }
-
             setLoading(true);
             try {
                 let data;
                 if (isViewOnly) {
-                    console.log('Fetching submission details for manager (view only):', { id, managerId: user?.id });
-                    data = await getApprovalDetail(id, user!.id);
+                    console.log('Fetching submission details for manager (view only):', { id });
+                    data = await getApprovalDetail(id);
                 } else {
-                    console.log('Fetching submission details for approval:', { id, employeeId });
-                    data = await getSubmissionById(id, employeeId!);
+                    console.log('Fetching submission details for approval:', { id });
+                    data = await getSubmissionById(id);
                 }
 
                 console.log('Submission data received:', data);
@@ -87,23 +82,21 @@ const SubmissionDetailPage: React.FC = () => {
                 setLoading(false);
             }
         };
-        if (user?.id) {
-            fetchSubmission();
-        }
-    }, [id, user?.id, form, isViewOnly, employeeId]);
+        fetchSubmission();
+    }, [id, form, isViewOnly]);
 
 
 
     const handleSaveAction = async () => {
-        if (!user?.id || !id) return;
+        if (!id) return;
 
         try {
             setSaving(true);
             const values = await decisionForm.validateFields();
 
-            console.log('Submitting approval action:', { id, managerId: user.id, values });
+            console.log('Submitting approval action:', { id, values });
 
-            await processApproval(id, user.id, {
+            await processApproval(id, {
                 action: values.action,
                 comment: values.comment
             });

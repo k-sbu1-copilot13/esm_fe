@@ -41,11 +41,11 @@ const EmployeeSubmissionDetailPage: React.FC = () => {
 
     useEffect(() => {
         const fetchSubmission = async () => {
-            if (!id || !user?.id) return;
+            if (!id) return;
 
             setLoading(true);
             try {
-                const data = await getSubmissionById(id, user.id);
+                const data = await getSubmissionById(id);
                 setSubmission(data);
 
                 // Initialize form with submission values
@@ -63,7 +63,7 @@ const EmployeeSubmissionDetailPage: React.FC = () => {
         };
 
         fetchSubmission();
-    }, [id, user?.id, form]);
+    }, [id, form]);
 
     const renderField = (field: any) => {
         const commonProps = {
