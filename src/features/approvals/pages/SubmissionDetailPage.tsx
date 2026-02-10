@@ -23,18 +23,16 @@ import {
     ClockCircleOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
-import { getSubmissionById } from '../../submissions/api/submissions';
 import { useAuthStore } from '../../../store/authStore';
 import { ComponentType, DynamicField, FIELD_LIMITS } from '../../templates';
 import { Steps } from 'antd';
 import { processApproval, getApprovalDetail } from '../api/approvals';
 
-const { Title, Paragraph, Text } = Typography;
+const { Title, Text } = Typography;
 
 const SubmissionDetailPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const [searchParams] = useSearchParams();
-    const employeeId = searchParams.get('employeeId');
     const isViewOnly = searchParams.get('isViewOnly') === 'true';
     const navigate = useNavigate();
     const [form] = Form.useForm();
@@ -58,13 +56,8 @@ const SubmissionDetailPage: React.FC = () => {
             setLoading(true);
             try {
                 let data;
-                if (isViewOnly) {
-                    console.log('Fetching submission details for manager (view only):', { id });
-                    data = await getApprovalDetail(id);
-                } else {
-                    console.log('Fetching submission details for approval:', { id });
-                    data = await getSubmissionById(id);
-                }
+                console.log('Fetching submission details for manager:', { id, isViewOnly });
+                data = await getApprovalDetail(id);
 
                 console.log('Submission data received:', data);
                 setSubmission(data);
