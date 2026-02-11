@@ -1,0 +1,8 @@
+export const FIELD_LIMITS = {
+    SHORT_TEXT: 100,
+    LONG_TEXT: 1000,
+    DESCRIPTION: 255,
+    TITLE: 100,
+    LABEL: 50,
+    REASON: 1000,
+};

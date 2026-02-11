@@ -3,9 +3,6 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
     Form,
     Input,
-    InputNumber,
-    DatePicker,
-    TimePicker,
     Button,
     Card,
     Typography,
@@ -26,18 +23,16 @@ import {
     ClockCircleOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
-import { getSubmissionById } from '../../submissions/api/submissions';
 import { useAuthStore } from '../../../store/authStore';
-import { ComponentType } from '../../templates';
+import { ComponentType, DynamicField, FIELD_LIMITS } from '../../templates';
 import { Steps } from 'antd';
 import { processApproval, getApprovalDetail } from '../api/approvals';
 
-const { Title, Paragraph, Text } = Typography;
+const { Title, Text } = Typography;
 
 const SubmissionDetailPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const [searchParams] = useSearchParams();
-    const employeeId = searchParams.get('employeeId');
     const isViewOnly = searchParams.get('isViewOnly') === 'true';
     const navigate = useNavigate();
     const [form] = Form.useForm();
@@ -58,21 +53,11 @@ const SubmissionDetailPage: React.FC = () => {
                 return;
             }
 
-            if (!isViewOnly && !employeeId) {
-                console.warn('Missing Employee ID from URL for approval mode:', { id, employeeId });
-                return;
-            }
-
             setLoading(true);
             try {
                 let data;
-                if (isViewOnly) {
-                    console.log('Fetching submission details for manager (view only):', { id, managerId: user?.id });
-                    data = await getApprovalDetail(id, user!.id);
-                } else {
-                    console.log('Fetching submission details for approval:', { id, employeeId });
-                    data = await getSubmissionById(id, employeeId!);
-                }
+                console.log('Fetching submission details for manager:', { id, isViewOnly });
+                data = await getApprovalDetail(id);
 
                 console.log('Submission data received:', data);
                 setSubmission(data);
@@ -90,44 +75,21 @@ const SubmissionDetailPage: React.FC = () => {
                 setLoading(false);
             }
         };
-        if (user?.id) {
-            fetchSubmission();
-        }
-    }, [id, user?.id, form, isViewOnly, employeeId]);
+        fetchSubmission();
+    }, [id, form, isViewOnly]);
 
-    const renderField = (field: any) => {
-        const commonProps = {
-            style: { width: '100%', borderRadius: 8 },
-            readOnly: true,
-            disabled: true // Keep it disabled as it's a detail view for manager
-        };
 
-        switch (field.componentType) {
-            case ComponentType.TEXT_SHORT:
-                return <Input {...commonProps} />;
-            case ComponentType.TEXT_AREA:
-                return <Input.TextArea {...commonProps} autoSize={{ minRows: 3, maxRows: 6 }} />;
-            case ComponentType.NUMBER:
-                return <InputNumber {...commonProps} />;
-            case ComponentType.DATE_PICKER:
-                return <DatePicker {...commonProps} />;
-            case ComponentType.TIME_PICKER:
-                return <TimePicker {...commonProps} />;
-            default:
-                return <Input {...commonProps} />;
-        }
-    };
 
     const handleSaveAction = async () => {
-        if (!user?.id || !id) return;
+        if (!id) return;
 
         try {
             setSaving(true);
             const values = await decisionForm.validateFields();
 
-            console.log('Submitting approval action:', { id, managerId: user.id, values });
+            console.log('Submitting approval action:', { id, values });
 
-            await processApproval(id, user.id, {
+            await processApproval(id, {
                 action: values.action,
                 comment: values.comment
             });
@@ -235,7 +197,12 @@ const SubmissionDetailPage: React.FC = () => {
                                 getValueProps: (value: any) => ({ value: value ? dayjs(value, 'HH:mm:ss') : undefined }),
                             } : {})}
                         >
-                            {renderField(field)}
+                            <DynamicField
+                                componentType={field.componentType}
+                                label={field.label}
+                                readOnly
+                                disabled
+                            />
                         </Form.Item>
                     ))}
                 </Form>
@@ -287,6 +254,8 @@ const SubmissionDetailPage: React.FC = () => {
                                         placeholder={getFieldValue('action') === 'REJECT' ? "Please provide a reason for rejection (required)..." : "Please provide a reason for your decision (optional)..."}
                                         autoSize={{ minRows: 4, maxRows: 8 }}
                                         style={{ borderRadius: 10 }}
+                                        maxLength={FIELD_LIMITS.REASON}
+                                        showCount
                                     />
                                 </Form.Item>
                             )}

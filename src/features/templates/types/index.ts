@@ -1,3 +1,5 @@
+import type { PaginatedResponse } from '../../../types';
+
 export const ComponentType = {
     TEXT_SHORT: 'TEXT_SHORT',
     TEXT_AREA: 'TEXT_AREA',
@@ -34,17 +36,4 @@ export interface FormTemplate {
     workflow?: WorkflowStep[]; // Alias for backend consistency
 }
 
-export interface PaginatedResponse<T> {
-    content: T[];
-    totalElements: number;
-    totalPages: number;
-    size: number;
-    number: number;
-    first: boolean;
-    last: boolean;
-    empty: boolean;
-    pageable: {
-        pageNumber: number;
-        pageSize: number;
-    };
-}
+export type { PaginatedResponse };

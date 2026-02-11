@@ -62,14 +62,9 @@ const EmployeeDashboard: React.FC = () => {
     };
 
     const fetchDrafts = async () => {
-        if (!user?.id) {
-            console.warn('User not logged in, skipping draft fetch');
-            return;
-        }
-
         setLoadingDrafts(true);
         try {
-            const data = await getDraftSubmissions(user.id, {
+            const data = await getDraftSubmissions({
                 page: draftCurrentPage - 1,
                 size: draftPageSize,
                 search: draftSearchText || undefined
@@ -105,14 +100,9 @@ const EmployeeDashboard: React.FC = () => {
     }, [draftCurrentPage, draftSearchText]);
 
     const fetchSubmitted = async () => {
-        if (!user?.id) {
-            console.warn('User not logged in, skipping submitted fetch');
-            return;
-        }
-
         setLoadingSubmitted(true);
         try {
-            const data = await getSubmittedSubmissions(user.id, {
+            const data = await getSubmittedSubmissions({
                 page: submittedCurrentPage - 1,
                 size: submittedPageSize,
                 search: submittedSearchText || undefined
@@ -141,10 +131,8 @@ const EmployeeDashboard: React.FC = () => {
     }, [submittedCurrentPage, submittedSearchText]);
 
     const handleDeleteDraft = async (id: number) => {
-        if (!user?.id) return;
-
         try {
-            await deleteSubmission(id, user.id);
+            await deleteSubmission(id);
             message.success('Draft deleted successfully');
             fetchDrafts(); // Refresh the list
         } catch (error: any) {
@@ -370,6 +358,10 @@ const EmployeeDashboard: React.FC = () => {
                         locale={{
                             emptyText: 'No submitted applications'
                         }}
+                        onRow={(record) => ({
+                            onClick: () => navigate(`/submissions/detail/${record.id}`),
+                            style: { cursor: 'pointer' }
+                        })}
                     />
                 )}
             </Card>

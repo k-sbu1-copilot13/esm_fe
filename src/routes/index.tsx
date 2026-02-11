@@ -3,11 +3,11 @@ import AuthLayout from '../components/Layout/AuthLayout';
 import MainLayout from '../components/Layout/MainLayout';
 import { LoginPage } from '../features/auth';
 import { DashboardPage } from '../features/dashboard';
-import CreateTemplatePage from '../features/templates/pages/CreateTemplatePage';
-import TemplateDetailPage from '../features/templates/pages/TemplateDetailPage';
-import FillFormPage from '../features/submissions/pages/FillFormPage';
-import EditSubmissionPage from '../features/submissions/pages/EditSubmissionPage';
-import SubmissionDetailPage from '../features/approvals/pages/SubmissionDetailPage';
+import { CreateTemplatePage, TemplateDetailPage } from '../features/templates';
+import { FillFormPage, EditSubmissionPage, EmployeeSubmissionDetailPage } from '../features/submissions';
+import { SubmissionDetailPage } from '../features/approvals';
+import { ProfilePage } from '../features/profile';
+import { UserManagementPage, UserDetailPage } from '../features/users';
 import { useAuthStore } from '../store/authStore';
 import React from 'react';
 
@@ -36,7 +36,15 @@ export const router = createBrowserRouter([
             },
             {
                 path: 'profile',
-                element: <div style={{ padding: 24 }}><h2>Profile Page (Under Development)</h2></div>,
+                element: <ProfilePage />,
+            },
+            {
+                path: 'users',
+                element: <UserManagementPage />,
+            },
+            {
+                path: 'users/:id',
+                element: <UserDetailPage />,
             },
             {
                 path: 'templates/create',
@@ -57,6 +65,10 @@ export const router = createBrowserRouter([
             {
                 path: 'submissions/approve/:id',
                 element: <SubmissionDetailPage />,
+            },
+            {
+                path: 'submissions/detail/:id',
+                element: <EmployeeSubmissionDetailPage />,
             },
             {
                 path: 'settings',

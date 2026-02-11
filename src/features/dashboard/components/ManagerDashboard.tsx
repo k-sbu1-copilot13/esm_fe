@@ -29,10 +29,9 @@ const ManagerDashboard: React.FC = () => {
     const [processedSearch, setProcessedSearch] = useState('');
 
     const fetchPendingApprovals = async () => {
-        if (!user?.id) return;
         setLoadingAwaiting(true);
         try {
-            const data = await getPendingApprovals(user.id, {
+            const data = await getPendingApprovals({
                 page: awaitingPage - 1,
                 size: pageSize,
                 search: awaitingSearch || undefined
@@ -48,10 +47,9 @@ const ManagerDashboard: React.FC = () => {
     };
 
     const fetchApprovalHistory = async () => {
-        if (!user?.id) return;
         setLoadingProcessed(true);
         try {
-            const data = await getApprovalHistory(user.id, {
+            const data = await getApprovalHistory({
                 page: processedPage - 1,
                 size: pageSize,
                 search: processedSearch || undefined
@@ -71,14 +69,14 @@ const ManagerDashboard: React.FC = () => {
             fetchPendingApprovals();
         }, 300);
         return () => clearTimeout(timer);
-    }, [user?.id, awaitingPage, awaitingSearch]);
+    }, [awaitingPage, awaitingSearch]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
             fetchApprovalHistory();
         }, 300);
         return () => clearTimeout(timer);
-    }, [user?.id, processedPage, processedSearch]);
+    }, [processedPage, processedSearch]);
 
     const awaitingColumns: ColumnsType<PendingApproval> = [
         {

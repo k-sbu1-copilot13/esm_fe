@@ -2,7 +2,7 @@ import React from 'react';
 import { Form, Input, Button, Card, Space, Select, Typography, Divider, Checkbox, Tooltip, message, Tag } from 'antd';
 import { PlusOutlined, DeleteOutlined, ArrowLeftOutlined, SaveOutlined, MenuOutlined, ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { ComponentType } from '../types';
+import { ComponentType, FIELD_LIMITS } from '..';
 import { createTemplate } from '../api/createTemplate';
 import { getManagers, type Manager } from '../../auth';
 
@@ -135,7 +135,7 @@ const CreateTemplatePage: React.FC = () => {
                             name="title"
                             rules={[{ required: true, message: 'Please enter form title' }]}
                         >
-                            <Input placeholder="e.g., Equipment Request Form" size="large" style={{ borderRadius: 8 }} />
+                            <Input placeholder="e.g., Equipment Request Form" size="large" style={{ borderRadius: 8 }} maxLength={FIELD_LIMITS.TITLE} showCount />
                         </Form.Item>
 
                         <Form.Item
@@ -157,6 +157,8 @@ const CreateTemplatePage: React.FC = () => {
                             placeholder="Briefly explain what this form is for..."
                             rows={3}
                             style={{ borderRadius: 8 }}
+                            maxLength={FIELD_LIMITS.DESCRIPTION}
+                            showCount
                         />
                     </Form.Item>
 
@@ -219,7 +221,7 @@ const CreateTemplatePage: React.FC = () => {
                                                     label="Label"
                                                     rules={[{ required: true, message: 'Label is required' }]}
                                                 >
-                                                    <Input placeholder="e.g., Department Name" style={{ borderRadius: 6 }} />
+                                                    <Input placeholder="e.g., Department Name" style={{ borderRadius: 6 }} maxLength={FIELD_LIMITS.LABEL} showCount />
                                                 </Form.Item>
 
                                                 <Form.Item

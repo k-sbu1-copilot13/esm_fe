@@ -7,7 +7,7 @@ import type { LoginRequest } from '../types';
 const { Title, Text } = Typography;
 
 interface LoginFormProps {
-    onSuccess: (token: string, username: string, role: string, id: number) => void;
+    onSuccess: (token: string, refreshToken: string, username: string, role: string, id: number) => void;
 }
 
 const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
@@ -18,7 +18,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
         try {
             const response = await login(values);
             message.success('Login successful!');
-            onSuccess(response.token, response.username, response.role, response.id);
+            onSuccess(response.token, response.refreshToken, response.username, response.role, response.id);
         } catch (error: any) {
             const errorMsg = error.response?.data?.message || 'Invalid username or password';
             message.error(errorMsg);

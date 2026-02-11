@@ -1,17 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import dayjs from 'dayjs';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import {
     Form,
-    Input,
-    InputNumber,
-    DatePicker,
-    TimePicker,
     Button,
     Card,
     Typography,
     Spin,
-    message,
     Divider,
     Steps,
     Space
@@ -23,131 +18,31 @@ import {
     SolutionOutlined,
     UserOutlined
 } from '@ant-design/icons';
-import { getTemplateById, getSubmissionById, saveDraft, submitForm } from '../api/submissions';
-import type { FormTemplate } from '../types';
-import { ComponentType } from '../../templates';
-import { useAuthStore } from '../../../store/authStore';
+import { useSubmissionForm } from '../hooks/useSubmissionForm';
+import { ComponentType, DynamicField } from '../../templates';
 
 const { Title, Paragraph } = Typography;
 
 const EditSubmissionPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
-    const navigate = useNavigate();
-    const [form] = Form.useForm();
-    const [template, setTemplate] = useState<FormTemplate | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-    const [submitting, setSubmitting] = useState(false);
-    const user = useAuthStore((state) => state.user);
-
-    useEffect(() => {
-        const fetchData = async () => {
-            if (!id || !user?.id) return;
-            setLoading(true);
-            try {
-                // Fetch submission data
-                const submissionData = await getSubmissionById(id, user.id);
-
-                // Fetch template data
-                const templateData = await getTemplateById(submissionData.templateId);
-                setTemplate(templateData);
-
-                // Transform submissionValues to form values
-                const initialValues: Record<string, any> = {};
-                submissionData.submissionValues.forEach((sv) => {
-                    initialValues[sv.fieldId] = sv.value;
-                });
-
-                form.setFieldsValue(initialValues);
-            } catch (error) {
-                console.error('Failed to fetch data:', error);
-                message.error('Failed to load application data.');
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchData();
-    }, [id, user?.id, form]);
+    const {
+        form,
+        template,
+        loading,
+        saving,
+        submitting,
+        handleSave,
+        handleSubmit,
+        navigate
+    } = useSubmissionForm(id, true);
 
     const renderField = (field: any) => {
-        const commonProps = {
-            placeholder: `Enter ${field.label.toLowerCase()}...`,
-            style: { width: '100%', borderRadius: 8 }
-        };
-
-        switch (field.componentType) {
-            case ComponentType.TEXT_SHORT:
-                return <Input {...commonProps} />;
-            case ComponentType.TEXT_AREA:
-                return <Input.TextArea {...commonProps} autoSize={{ minRows: 3, maxRows: 6 }} />;
-            case ComponentType.NUMBER:
-                return <InputNumber {...commonProps} />;
-            case ComponentType.DATE_PICKER:
-                return <DatePicker {...commonProps} />;
-            case ComponentType.TIME_PICKER:
-                return <TimePicker {...commonProps} />;
-            default:
-                return <Input {...commonProps} />;
-        }
-    };
-
-    const handleSave = async () => {
-        if (!template || !user?.id || !id) {
-            message.error('Missing required information to save draft.');
-            return;
-        }
-
-        setSaving(true);
-        try {
-            const values = form.getFieldsValue();
-            console.log('Saving Draft:', { id, templateId: template.id, values });
-
-            const draftData = {
-                id: Number(id),
-                templateId: Number(template.id),
-                values
-            };
-
-            await saveDraft(draftData, user.id);
-            message.success('Draft saved successfully!');
-            navigate('/');
-        } catch (error: any) {
-            console.error('Save Draft failed:', error);
-            const errorMsg = error.response?.data?.message || error.message || 'Failed to save draft.';
-            message.error(`Save failed: ${errorMsg}`);
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const handleSubmit = async () => {
-        if (!template || !user?.id || !id) {
-            message.error('Missing required information to submit form.');
-            return;
-        }
-
-        try {
-            const values = await form.validateFields();
-            console.log('Submitting Form:', { id, templateId: template.id, values });
-
-            setSubmitting(true);
-            const submissionData = {
-                id: Number(id),
-                templateId: Number(template.id),
-                values
-            };
-
-            await submitForm(submissionData, user.id);
-            message.success('Form submitted successfully!');
-            navigate('/');
-        } catch (error: any) {
-            if (error.errorFields) return;
-            console.error('Submission failed:', error);
-            const errorMsg = error.response?.data?.message || error.message || 'Failed to submit form.';
-            message.error(`Submission failed: ${errorMsg}`);
-        } finally {
-            setSubmitting(false);
-        }
+        return (
+            <DynamicField
+                componentType={field.componentType}
+                label={field.label}
+            />
+        );
     };
 
     if (loading) {
