@@ -3,14 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Table, Typography, Card, Tag, Space, message, Input } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
-import { useAuthStore } from '../../../store/authStore';
 import { getPendingApprovals, getApprovalHistory } from '../../approvals';
 import type { PendingApproval, ApprovalHistory } from '../../approvals';
 
 const { Title } = Typography;
 
 const ManagerDashboard: React.FC = () => {
-    const { user } = useAuthStore();
     const navigate = useNavigate();
 
     // Awaiting state
@@ -193,8 +191,9 @@ const ManagerDashboard: React.FC = () => {
                     onRow={(record) => ({
                         onClick: () => {
                             const subId = record.submissionId;
-                            console.log('Navigating to processed submission detail:', { subId, Record: record });
-                            navigate(`/submissions/approve/${subId}?isViewOnly=true`);
+                            const logId = record.id;
+                            console.log('Navigating to processed submission detail:', { subId, logId, Record: record });
+                            navigate(`/submissions/approve/${subId}?isViewOnly=true&logId=${logId}`);
                         },
                         style: { cursor: 'pointer' }
                     })}
