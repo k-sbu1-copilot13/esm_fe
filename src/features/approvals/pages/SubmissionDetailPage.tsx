@@ -40,11 +40,61 @@ const SubmissionDetailPage: React.FC = () => {
     const [submission, setSubmission] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [viewingArchive, setViewingArchive] = useState<{ date: string, action: string } | null>(null);
     const user = useAuthStore((state) => state.user);
 
     const myActionStep = submission?.workflowSteps?.find(
         (step: any) => step.managerId === user?.id && step.status
     );
+
+    // Reconstruct state for Archive view
+    const logId = searchParams.get('logId');
+    const activeLog = logId && submission?.fullHistory
+        ? submission.fullHistory.find((l: any) => l.id.toString() === logId)
+        : null;
+
+    const displayDecision = activeLog ? {
+        status: activeLog.action === 'APPROVE' ? 'APPROVED' : (activeLog.action === 'REJECT' ? 'REJECTED' : activeLog.action),
+        comment: activeLog.comment,
+        updatedAt: activeLog.actedAt
+    } : myActionStep;
+
+    const displayWorkflowSteps = (activeLog && submission?.workflowSteps)
+        ? submission.workflowSteps.map((step: any) => {
+            if (step.stepOrder === activeLog.atStep) {
+                return {
+                    ...step,
+                    status: activeLog.action === 'APPROVE' ? 'APPROVED' : (activeLog.action === 'REJECT' ? 'REJECTED' : activeLog.action),
+                    comment: activeLog.comment,
+                    updatedAt: activeLog.actedAt,
+                    historicalValues: activeLog.historicalValues
+                };
+            }
+            if (step.stepOrder < activeLog.atStep) {
+                // Find previous log for this step in the same cycle or sequence
+                const prevLog = submission.fullHistory
+                    .filter((l: any) => l.atStep === step.stepOrder && l.id < activeLog.id)
+                    .sort((a: any, b: any) => b.id - a.id)[0];
+                if (prevLog) {
+                    return {
+                        ...step,
+                        status: prevLog.action === 'APPROVE' ? 'APPROVED' : (prevLog.action === 'REJECT' ? 'REJECTED' : prevLog.action),
+                        comment: prevLog.comment,
+                        updatedAt: prevLog.actedAt,
+                        historicalValues: prevLog.historicalValues
+                    };
+                }
+            }
+            // For future steps relative to archive point
+            return {
+                ...step,
+                status: 'PENDING',
+                comment: null,
+                updatedAt: null,
+                historicalValues: null
+            };
+        })
+        : submission?.workflowSteps;
 
     useEffect(() => {
         const fetchSubmission = async () => {
@@ -64,7 +114,24 @@ const SubmissionDetailPage: React.FC = () => {
 
                 // Initialize form with submission values
                 const initialValues: Record<string, any> = {};
-                data.submissionValues.forEach((val: any) => {
+
+                // Check if we are viewing a specific historical version
+                const logId = searchParams.get('logId');
+                let valuesToUse = data.submissionValues;
+
+                if (logId && data.fullHistory) {
+                    const historicalLog = data.fullHistory.find((l: any) => l.id.toString() === logId);
+                    if (historicalLog && historicalLog.historicalValues) {
+                        valuesToUse = historicalLog.historicalValues;
+                        setViewingArchive({
+                            date: dayjs(historicalLog.actedAt).format('DD/MM/YYYY HH:mm'),
+                            action: historicalLog.action
+                        });
+                        console.log('Using historical snapshot values:', valuesToUse);
+                    }
+                }
+
+                valuesToUse.forEach((val: any) => {
                     initialValues[val.fieldId] = val.value;
                 });
                 form.setFieldsValue(initialValues);
@@ -76,7 +143,7 @@ const SubmissionDetailPage: React.FC = () => {
             }
         };
         fetchSubmission();
-    }, [id, form, isViewOnly]);
+    }, [id, form, isViewOnly, searchParams]);
 
 
 
@@ -287,7 +354,7 @@ const SubmissionDetailPage: React.FC = () => {
             )}
 
             {/* SECTION 4: YOUR DECISION (For processed applications) */}
-            {isViewOnly && myActionStep && (
+            {isViewOnly && displayDecision && (
                 <Card
                     bordered={false}
                     className="glass-morphism"
@@ -297,8 +364,8 @@ const SubmissionDetailPage: React.FC = () => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                         <div style={{ display: 'flex', alignItems: 'center' }}>
                             <Text strong style={{ width: 120, display: 'inline-block' }}>Action:</Text>
-                            <Tag color={myActionStep.status === 'APPROVED' ? 'green' : 'red'} style={{ margin: 0 }}>
-                                {myActionStep.status}
+                            <Tag color={displayDecision.status === 'APPROVED' || displayDecision.status === 'APPROVE' ? 'green' : 'red'} style={{ margin: 0 }}>
+                                {displayDecision.status}
                             </Tag>
                         </div>
 
@@ -313,14 +380,14 @@ const SubmissionDetailPage: React.FC = () => {
                                 color: '#555',
                                 border: '1px solid #eee'
                             }}>
-                                {myActionStep.comment ? `"${myActionStep.comment}"` : "None"}
+                                {displayDecision.comment ? `"${displayDecision.comment}"` : "None"}
                             </div>
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center' }}>
                             <Text strong style={{ width: 120, display: 'inline-block' }}>Processed at:</Text>
                             <Text type="secondary">
-                                {dayjs(myActionStep.updatedAt).format('DD/MM/YYYY HH:mm')}
+                                {dayjs(displayDecision.updatedAt).format('DD/MM/YYYY HH:mm')}
                             </Text>
                         </div>
                     </div>
@@ -328,7 +395,7 @@ const SubmissionDetailPage: React.FC = () => {
             )}
 
             {/* Approval Process Steps (Footer) */}
-            {submission.workflowSteps && submission.workflowSteps.length > 0 && (
+            {displayWorkflowSteps && displayWorkflowSteps.length > 0 && (
                 <Card
                     bordered={false}
                     className="glass-morphism"
@@ -338,17 +405,23 @@ const SubmissionDetailPage: React.FC = () => {
                     <Steps
                         direction="vertical"
                         size="small"
-                        current={submission.status === 'APPROVED' || submission.status === 'REJECTED' ? submission.workflowSteps.length : submission.currentStep - 1}
-                        items={submission.workflowSteps.map((step: any) => ({
+                        current={
+                            viewingArchive
+                                ? activeLog.atStep - 1
+                                : (submission.status === 'APPROVED' || submission.status === 'REJECTED' ? displayWorkflowSteps.length : submission.currentStep - 1)
+                        }
+                        items={displayWorkflowSteps.map((step: any) => ({
                             title: `Step ${step.stepOrder}: ${step.managerName || 'Manager'}`,
                             description: (
-                                <Tag color={
-                                    step.status === 'APPROVED' ? 'green' :
-                                        step.status === 'REJECTED' ? 'red' :
-                                            'default'
-                                }>
-                                    {step.status || 'Pending'}
-                                </Tag>
+                                <Space direction="vertical" size={0}>
+                                    <Tag color={
+                                        step.status === 'APPROVED' ? 'green' :
+                                            step.status === 'REJECTED' ? 'red' :
+                                                'default'
+                                    }>
+                                        {step.status || 'Pending'}
+                                    </Tag>
+                                </Space>
                             ),
                             icon: step.status === 'APPROVED' ? (
                                 <CheckCircleOutlined style={{ color: '#52c41a' }} />
@@ -363,11 +436,13 @@ const SubmissionDetailPage: React.FC = () => {
                     <Divider style={{ margin: '24px 0 16px' }} />
 
                     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 12 }}>
-                        <Text strong style={{ color: '#8c8c8c', letterSpacing: 0.5 }}>FINAL STATUS</Text>
+                        <Text strong style={{ color: '#8c8c8c', letterSpacing: 0.5 }}>
+                            FINAL STATUS
+                        </Text>
                         <Tag
                             color={
-                                submission.status === 'APPROVED' ? 'success' :
-                                    submission.status === 'REJECTED' ? 'error' :
+                                (viewingArchive ? (activeLog.action === 'APPROVE' ? 'APPROVED' : 'REJECTED') : submission.status) === 'APPROVED' ? 'success' :
+                                    (viewingArchive ? (activeLog.action === 'APPROVE' ? 'APPROVED' : 'REJECTED') : submission.status) === 'REJECTED' ? 'error' :
                                         'processing'
                             }
                             style={{
@@ -376,11 +451,11 @@ const SubmissionDetailPage: React.FC = () => {
                                 borderRadius: 8,
                                 fontWeight: 700,
                                 margin: 0,
-                                boxShadow: submission.status === 'APPROVED' ? '0 4px 10px rgba(82,196,26,0.2)' :
-                                    submission.status === 'REJECTED' ? '0 4px 10px rgba(255,77,79,0.2)' : 'none'
+                                boxShadow: (viewingArchive ? (activeLog.action === 'APPROVE' ? 'APPROVED' : 'REJECTED') : submission.status) === 'APPROVED' ? '0 4px 10px rgba(82,196,26,0.2)' :
+                                    (viewingArchive ? (activeLog.action === 'APPROVE' ? 'APPROVED' : 'REJECTED') : submission.status) === 'REJECTED' ? '0 4px 10px rgba(255,77,79,0.2)' : 'none'
                             }}
                         >
-                            {submission.status || 'PENDING'}
+                            {viewingArchive ? activeLog.action : (submission.status || 'PENDING')}
                         </Tag>
                     </div>
                 </Card>

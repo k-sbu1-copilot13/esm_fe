@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
     Form,
     Input,
@@ -34,10 +34,54 @@ const { Title, Text } = Typography;
 const EmployeeSubmissionDetailPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const [form] = Form.useForm();
     const [submission, setSubmission] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [viewingArchive, setViewingArchive] = useState<{ date: string, action: string } | null>(null);
     const user = useAuthStore((state) => state.user);
+
+    // Reconstruct state for Archive view
+    const logId = searchParams.get('logId');
+    const activeLog = logId && submission?.fullHistory
+        ? submission.fullHistory.find((l: any) => l.id.toString() === logId)
+        : null;
+
+    const displayWorkflowSteps = (activeLog && submission?.workflowSteps)
+        ? submission.workflowSteps.map((step: any) => {
+            if (step.stepOrder === activeLog.atStep) {
+                return {
+                    ...step,
+                    status: activeLog.action === 'APPROVE' ? 'APPROVED' : (activeLog.action === 'REJECT' ? 'REJECTED' : activeLog.action),
+                    comment: activeLog.comment,
+                    updatedAt: activeLog.actedAt,
+                    historicalValues: activeLog.historicalValues
+                };
+            }
+            if (step.stepOrder < activeLog.atStep) {
+                // Find previous log for this step
+                const prevLog = submission.fullHistory
+                    .filter((l: any) => l.atStep === step.stepOrder && (l.id < activeLog.id || !activeLog.id))
+                    .sort((a: any, b: any) => b.id - a.id)[0];
+                if (prevLog) {
+                    return {
+                        ...step,
+                        status: prevLog.action === 'APPROVE' ? 'APPROVED' : (prevLog.action === 'REJECT' ? 'REJECTED' : prevLog.action),
+                        comment: prevLog.comment,
+                        updatedAt: prevLog.actedAt,
+                        historicalValues: prevLog.historicalValues
+                    };
+                }
+            }
+            return {
+                ...step,
+                status: 'PENDING',
+                comment: null,
+                updatedAt: null,
+                historicalValues: null
+            };
+        })
+        : submission?.workflowSteps;
 
     useEffect(() => {
         const fetchSubmission = async () => {
@@ -50,7 +94,23 @@ const EmployeeSubmissionDetailPage: React.FC = () => {
 
                 // Initialize form with submission values
                 const initialValues: Record<string, any> = {};
-                data.submissionValues.forEach((val: any) => {
+
+                // Check if we are viewing a specific historical version
+                const logId = searchParams.get('logId');
+                let valuesToUse = data.submissionValues;
+
+                if (logId && data.fullHistory) {
+                    const historicalLog = data.fullHistory.find((l: any) => l.id.toString() === logId);
+                    if (historicalLog && historicalLog.historicalValues) {
+                        valuesToUse = historicalLog.historicalValues;
+                        setViewingArchive({
+                            date: dayjs(historicalLog.actedAt).format('DD/MM/YYYY HH:mm'),
+                            action: historicalLog.action
+                        });
+                    }
+                }
+
+                valuesToUse.forEach((val: any) => {
                     initialValues[val.fieldId] = val.value;
                 });
                 form.setFieldsValue(initialValues);
@@ -63,7 +123,7 @@ const EmployeeSubmissionDetailPage: React.FC = () => {
         };
 
         fetchSubmission();
-    }, [id, form]);
+    }, [id, form, searchParams]);
 
     const renderField = (field: any) => {
         const commonProps = {
@@ -172,7 +232,7 @@ const EmployeeSubmissionDetailPage: React.FC = () => {
             </Card>
 
             {/* Approval Process Steps (Footer) */}
-            {submission.workflowSteps && submission.workflowSteps.length > 0 && (
+            {displayWorkflowSteps && displayWorkflowSteps.length > 0 && (
                 <Card
                     bordered={false}
                     className="glass-morphism"
@@ -182,8 +242,12 @@ const EmployeeSubmissionDetailPage: React.FC = () => {
                     <Steps
                         direction="vertical"
                         size="small"
-                        current={submission.status === 'APPROVED' || submission.status === 'REJECTED' ? submission.workflowSteps.length : submission.currentStep - 1}
-                        items={submission.workflowSteps.map((step: any) => ({
+                        current={
+                            viewingArchive
+                                ? activeLog.atStep - 1
+                                : (submission.status === 'APPROVED' || submission.status === 'REJECTED' ? displayWorkflowSteps.length : submission.currentStep - 1)
+                        }
+                        items={displayWorkflowSteps.map((step: any) => ({
                             title: (
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                                     <Text strong style={{ fontSize: 16 }}>Step {step.stepOrder}: {step.managerName || 'Manager'}</Text>
@@ -248,8 +312,8 @@ const EmployeeSubmissionDetailPage: React.FC = () => {
                         <Text strong style={{ color: '#8c8c8c', letterSpacing: 0.5 }}>FINAL STATUS</Text>
                         <Tag
                             color={
-                                submission.status === 'APPROVED' ? 'success' :
-                                    submission.status === 'REJECTED' ? 'error' :
+                                (viewingArchive ? (activeLog.action === 'APPROVE' ? 'APPROVED' : 'REJECTED') : submission.status) === 'APPROVED' ? 'success' :
+                                    (viewingArchive ? (activeLog.action === 'APPROVE' ? 'APPROVED' : 'REJECTED') : submission.status) === 'REJECTED' ? 'error' :
                                         'processing'
                             }
                             style={{
@@ -258,11 +322,11 @@ const EmployeeSubmissionDetailPage: React.FC = () => {
                                 borderRadius: 8,
                                 fontWeight: 700,
                                 margin: 0,
-                                boxShadow: submission.status === 'APPROVED' ? '0 4px 10px rgba(82,196,26,0.2)' :
-                                    submission.status === 'REJECTED' ? '0 4px 10px rgba(255,77,79,0.2)' : 'none'
+                                boxShadow: (viewingArchive ? (activeLog.action === 'APPROVE' ? 'APPROVED' : 'REJECTED') : submission.status) === 'APPROVED' ? '0 4px 10px rgba(82,196,26,0.2)' :
+                                    (viewingArchive ? (activeLog.action === 'APPROVE' ? 'APPROVED' : 'REJECTED') : submission.status) === 'REJECTED' ? '0 4px 10px rgba(255,77,79,0.2)' : 'none'
                             }}
                         >
-                            {submission.status || 'PENDING'}
+                            {viewingArchive ? activeLog.action : (submission.status || 'PENDING')}
                         </Tag>
 
                         {submission.status === 'REJECTED' && (

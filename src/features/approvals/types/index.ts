@@ -1,3 +1,5 @@
+import type { SubmissionValue } from "../../submissions/types";
+
 export interface PendingApproval {
     id: number;
     submissionId: number;
@@ -18,4 +20,5 @@ export interface ApprovalHistory {
     comment?: string;
     atStep: number;
     actedAt: string;
+    historicalValues?: SubmissionValue[];
 }

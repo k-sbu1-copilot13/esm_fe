@@ -1,5 +1,6 @@
 import type { PaginatedResponse } from '../../../types';
 import type { FormTemplate } from '../../templates/types';
+import type { ApprovalHistory } from '../../approvals/types';
 
 export interface SubmissionValue {
     fieldId: number;
@@ -15,6 +16,7 @@ export interface WorkflowStep {
     status: string;
     comment?: string;
     updatedAt: string;
+    historicalValues?: SubmissionValue[];
 }
 
 export interface SaveDraftRequest {
@@ -31,6 +33,7 @@ export interface SaveDraftResponse {
     employeeName: string;
     submissionValues: SubmissionValue[];
     workflowSteps: WorkflowStep[];
+    fullHistory?: ApprovalHistory[];
     status: 'DRAFT' | 'SUBMITTED' | 'APPROVED' | 'REJECTED';
     currentStep: number;
     createdAt: string;

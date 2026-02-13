@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { message } from 'antd';
 
 /**
  * Axios instance for API communication with the Spring Boot Backend.
@@ -27,6 +28,7 @@ axiosInstance.interceptors.request.use(
 );
 
 // Response interceptor for automatic token refresh on 401 errors
+// and centralized error notification for 403, 404, 409
 axiosInstance.interceptors.response.use(
     (response) => response,
     async (error) => {
@@ -61,8 +63,28 @@ axiosInstance.interceptors.response.use(
             }
         }
 
+        // Centralized error notification based on HTTP status code
+        if (error.response) {
+            const { status, data } = error.response;
+            const errorMsg = data?.message || 'An unexpected error occurred';
+
+            switch (status) {
+                case 403:
+                    message.error(errorMsg);
+                    break;
+                case 404:
+                    message.error(errorMsg);
+                    break;
+                case 409:
+                    message.warning(errorMsg);
+                    break;
+                // 400 (validation) and 500 (server error) are handled by individual components
+            }
+        }
+
         return Promise.reject(error);
     }
 );
 
 export default axiosInstance;
+
