@@ -6,7 +6,7 @@ import { message } from 'antd';
  * Includes base URL configuration and interceptors for JWT.
  */
 const axiosInstance = axios.create({
-    baseURL: 'http://localhost:8080/api',
+    baseURL: import.meta.env.VITE_API_BASE_URL,
     timeout: 10000,
     headers: {
         'Content-Type': 'application/json',
@@ -43,7 +43,7 @@ axiosInstance.interceptors.response.use(
                     throw new Error('No refresh token available');
                 }
 
-                const { data } = await axios.post('http://localhost:8080/api/auth/refresh', {
+                const { data } = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/auth/refresh`, {
                     refreshToken,
                 });
 
@@ -87,4 +87,3 @@ axiosInstance.interceptors.response.use(
 );
 
 export default axiosInstance;
-
